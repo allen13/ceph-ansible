@@ -12,7 +12,7 @@ def create_vm(config, options = {})
 
   config.vm.synced_folder '.', '/vagrant', disabled: true
   config.vm.define vm_name do |config|
-    config.vm.box = VM_BOX
+    config.vm.box = options.fetch(:vm_box, 'centos/7')
     config.vm.hostname = vm_name
 
     private_ip = "192.0.2.10#{id}"
@@ -31,28 +31,18 @@ def create_vm(config, options = {})
       add_extra_disks(vm_name, vb, extra_disks, extra_disks_size) if extra_disks > 0
     end
 
-    config.vm.provision "shell",
-      inline: "systemctl daemon-reload && systemctl restart network"
-
   end
 end
 
 def add_extra_disks(vm_name, vb, extra_disks, extra_disks_size)
   dirname = File.dirname(__FILE__)
 
-  # My machine would flip out and virtualbox would hang when using additional
-  # sata controller, so using IDE controller and just doing 3 extra disks cap
-  # - jgardner
-
-  # Disk limit
-  if extra_disks > 3
-    extra_disks = 3
-  end
-
   # Add extra disks
+  vb.customize ['storagectl', :id,
+                '--name', 'OSD Controller',
+                '--add', 'scsi']
   for i in 1..extra_disks do
-    # Create disk
-    disk_path = "#{dirname}/#{vm_name}-disk-#{i}.vdi"
+    disk_path = "#{dirname}/#{vm_name}-disk-#{3+i}.vdi"
     unless File.exist?(disk_path)
       vb.customize [
         'createhd',
@@ -60,22 +50,11 @@ def add_extra_disks(vm_name, vb, extra_disks, extra_disks_size)
         '--size', extra_disks_size * 1024
       ]
     end
-
-    # which port and master or slave on ide
-    if i < 2
-      port = 0
-      device = i
-    else
-      port = 1
-      device = i - 2
-    end
-
-    # Attach disk
     vb.customize [
       'storageattach', :id,
-      '--storagectl', 'IDE',
-      '--port', port,
-      '--device', device,
+      '--storagectl', 'OSD Controller',
+      '--port', 3 + i,
+      '--device', 0,
       '--type', 'hdd',
       '--medium', disk_path
     ]
