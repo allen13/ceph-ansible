@@ -26,6 +26,15 @@ Vagrant.configure("2") do |config|
     name: "origin",
     id: 3,
     cpus: 1,
-    memory: 512
+    memory: 1024,
+    extra_disks: 2,
+    extra_disks_size: 40,
+  )
+  create_vm(
+    config,
+    name: "origin",
+    id: 4,
+    cpus: 1,
+    memory: 512,
   )
 end

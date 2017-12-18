@@ -1,5 +1,13 @@
 ---
 # Defines deployment design and assigns role to server groups
+- name: upgrade kernel to mainline for data-pool image feature
+  hosts: clients
+  gather_facts: false
+  become: True
+  roles:
+    - elrepo-mainline-kernel
+  tags:
+    - elrepo-mainline-kernel
 
 - hosts:
   - mons
@@ -166,4 +174,3 @@
     - ceph-common
     - { role: ceph-config, when: "ceph_release_num[ceph_release] >= ceph_release_num.luminous" }
     - { role: ceph-iscsi-gw, when: "ceph_release_num[ceph_release] >= ceph_release_num.luminous" }
-

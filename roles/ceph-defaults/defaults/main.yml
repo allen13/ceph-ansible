@@ -8,6 +8,8 @@
 ######################################
 # Releases name to number dictionary #
 ######################################
+rbd_default_features: 3
+
 ceph_release_num:
   dumpling: 0.67
   emperor: 0.72
